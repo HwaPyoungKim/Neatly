@@ -8,55 +8,88 @@ import {
 } from "react-native";
 import { useDispatch } from "react-redux";
 import { setUser } from "../app/store/slices/AuthSlice";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
+import { COLORS } from "../theme/colors";
 
 export default function LoginScreen({ navigation }) {
+  const dispatch = useDispatch();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const dispatch = useDispatch();
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   const handleLogin = () => {
-    if (!email || !password) {
-      alert("Completa todos los campos");
-      return;
+    setEmailError("");
+    setPasswordError("");
+
+    let valid = true;
+
+    if (!email) {
+      setEmailError("El email es requerido");
+      valid = false;
     }
 
-    dispatch(setUser({ email }));
+    if (!password) {
+      setPasswordError("La contraseña es requerida");
+      valid = false;
+    }
 
-    console.log("Login exitoso:", { email });
+    if (!valid) return;
+
+    dispatch(setUser({ email }));
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bienvenido</Text>
+      <View>
+        <Text style={styles.title}>Bienvenido</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#888"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
+        {/* EMAIL */}
+        <TextInput
+          style={[
+            styles.inputUnderline,
+            emailError && { borderColor: COLORS.error },
+          ]}
+          placeholder="Email"
+          placeholderTextColor={COLORS.placeholder}
+          autoCapitalize="none"
+          onChangeText={setEmail}
+          value={email}
+        />
+        <View style={styles.errorContainer}>
+          {emailError ? <Text style={styles.error}>{emailError}</Text> : null}
+        </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#888"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+        {/* PASSWORD */}
+        <TextInput
+          style={[
+            styles.inputUnderline,
+            passwordError && { borderColor: COLORS.error },
+          ]}
+          placeholder="Password"
+          placeholderTextColor={COLORS.placeholder}
+          secureTextEntry
+          onChangeText={setPassword}
+          value={password}
+        />
+        <View style={styles.errorContainer}>
+          {passwordError ? (
+            <Text style={styles.error}>{passwordError}</Text>
+          ) : null}
+        </View>
+      </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Ingresar</Text>
-      </TouchableOpacity>
+      {/* FOOTER */}
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Ingresar</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate("register")}>
-        <Text style={styles.link}>Crear una cuenta</Text>
-      </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate("register")}>
+          <Text style={styles.link}>Crear una cuenta</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -64,40 +97,52 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "space-between",
     padding: 24,
-    backgroundColor: "#fff",
+    backgroundColor: COLORS.background,
   },
   title: {
     fontSize: 32,
     fontWeight: "600",
     marginBottom: 32,
     textAlign: "center",
+    color: COLORS.text,
   },
-  input: {
+  inputUnderline: {
     width: "100%",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 16,
+    borderBottomWidth: 2,
+    borderColor: COLORS.underline,
+    paddingVertical: 8,
+    marginBottom: 6,
     fontSize: 16,
+    color: COLORS.text,
+  },
+  errorContainer: {
+    minHeight: 18, // evita que se muevan los inputs
+  },
+  error: {
+    color: COLORS.error,
+    fontSize: 13,
+  },
+  footer: {
+    width: "100%",
+    alignItems: "center",
+    marginBottom: 20,
   },
   button: {
-    backgroundColor: "#222",
-    padding: 14,
-    borderRadius: 10,
-    marginTop: 12,
+    backgroundColor: COLORS.primary,
+    paddingVertical: 16,
+    borderRadius: 25,
+    width: "100%",
   },
   buttonText: {
-    color: "#fff",
+    color: COLORS.background,
     fontSize: 18,
     textAlign: "center",
   },
   link: {
-    marginTop: 16,
-    textAlign: "center",
-    color: "#555",
+    marginTop: 12,
+    color: COLORS.placeholder,
     fontSize: 15,
   },
 });
