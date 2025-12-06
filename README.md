@@ -49,3 +49,5 @@ Abrir en emulador o en Expo Go según instrucciones del CLI.
 - Agregar mas informacion para los habitos
 - Implementar el Onboarding
 - Separacion de componentes en otras screens
+- Guardar datos sensibles en un .env para no exponer las apikeys
+- Mejorar validacion de datos
