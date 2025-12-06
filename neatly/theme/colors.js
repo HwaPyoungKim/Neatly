@@ -6,7 +6,6 @@ export const COLORS = {
   error: "#e63946",
   background: "#fff",
 
-  // podes agregar más:
   success: "#3CB371",
   info: "#1E90FF",
   warning: "#FFA500",

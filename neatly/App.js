@@ -2,22 +2,20 @@ import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
 import { useEffect, useState } from "react";
 import { Provider } from "react-redux";
+import { SafeAreaProvider } from "react-native-safe-area-context"; // 👈 IMPORTANTE
 import RootStack from "./navigation/RootStack";
 import { store } from "./app/store/store";
+import { SQLiteProvider } from "expo-sqlite";
+import { initDatabase } from "./app/database";
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loaded, setLoaded] = useState(true);
 
   useEffect(() => {
-    // Simula la verificación del estado de autenticación
     const checkSession = async () => {
-      // const userData = await AsyncStorage.getItem("user");
-      // if (userData) {
-      //   setIsLoggedIn(true);
-      // }
       setLoaded(true);
     };
+    checkSession();
   }, []);
 
   if (!loaded) {
@@ -30,10 +28,14 @@ export default function App() {
   }
 
   return (
-    <Provider store={store}>
-      <RootStack />
-      <StatusBar style="auto" />
-    </Provider>
+    <SafeAreaProvider>
+      <SQLiteProvider databaseName="neatly.db" onInit={initDatabase}>
+        <Provider store={store}>
+          <RootStack />
+          <StatusBar style="auto" />
+        </Provider>
+      </SQLiteProvider>
+    </SafeAreaProvider>
   );
 }
 

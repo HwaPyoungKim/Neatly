@@ -5,8 +5,12 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../theme/colors";
+import { useRegisterMutation } from "../services/authService";
 
 export default function RegisterScreen({ navigation }) {
   const [form, setForm] = useState({
@@ -16,9 +20,22 @@ export default function RegisterScreen({ navigation }) {
     confirmPassword: "",
   });
 
+  const [triggerRegister, result] = useRegisterMutation();
+
+  const onSubmit = () => {
+    triggerRegister({
+      email: form.email,
+      password: form.password,
+    });
+  };
+
   const [err, setErr] = useState({});
 
-  const handleRegister = () => {
+  const set = (field, value) => {
+    setForm({ ...form, [field]: value });
+  };
+
+  const handleRegister = async () => {
     let newErr = {};
     let valid = true;
 
@@ -42,136 +59,181 @@ export default function RegisterScreen({ navigation }) {
     setErr(newErr);
     if (!valid) return;
 
-    navigation.navigate("login");
+    try {
+      const res = await triggerRegister({
+        email: form.email,
+        password: form.password,
+        name: form.name,
+      }).unwrap();
+      console.log("Register OK", res);
+
+      navigation.navigate("login");
+    } catch (error) {
+      console.log("Register error:", error);
+
+      if (error?.data?.message) {
+        setErr((prev) => ({ ...prev, email: error.data.message }));
+      }
+    }
   };
 
-  const set = (field, value) => setForm({ ...form, [field]: value });
-
   return (
-    <View style={styles.container}>
-      <View>
-        <Text style={styles.title}>Crear cuenta</Text>
+    <SafeAreaView style={styles.safe}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <View style={styles.content}>
+          <Text style={styles.appName}>Neatly</Text>
+          <Text style={styles.title}>Crear cuenta</Text>
+          <Text style={styles.subtitle}>
+            Empezá a reconstruir tu vida con hábitos y tareas claras.
+          </Text>
 
-        <TextInput
-          style={[
-            styles.inputUnderline,
-            err.name && { borderColor: COLORS.error },
-          ]}
-          placeholder="Nombre"
-          placeholderTextColor={COLORS.placeholder}
-          onChangeText={(t) => set("name", t)}
-        />
-        <View style={styles.errorContainer}>
-          {err.name && <Text style={styles.error}>{err.name}</Text>}
+          <TextInput
+            style={[
+              styles.inputUnderline,
+              err.name && { borderColor: COLORS.error },
+            ]}
+            placeholder="Nombre"
+            placeholderTextColor={COLORS.placeholder}
+            onChangeText={(t) => set("name", t)}
+          />
+          <View style={styles.errorContainer}>
+            {err.name && <Text style={styles.error}>{err.name}</Text>}
+          </View>
+
+          <TextInput
+            style={[
+              styles.inputUnderline,
+              err.email && { borderColor: COLORS.error },
+            ]}
+            placeholder="Email"
+            placeholderTextColor={COLORS.placeholder}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            onChangeText={(t) => set("email", t)}
+          />
+          <View style={styles.errorContainer}>
+            {err.email && <Text style={styles.error}>{err.email}</Text>}
+          </View>
+
+          <TextInput
+            style={[
+              styles.inputUnderline,
+              err.password && { borderColor: COLORS.error },
+            ]}
+            placeholder="Password"
+            placeholderTextColor={COLORS.placeholder}
+            secureTextEntry
+            onChangeText={(t) => set("password", t)}
+          />
+          <View style={styles.errorContainer}>
+            {err.password && <Text style={styles.error}>{err.password}</Text>}
+          </View>
+
+          <TextInput
+            style={[
+              styles.inputUnderline,
+              err.confirmPassword && { borderColor: COLORS.error },
+            ]}
+            placeholder="Confirm Password"
+            placeholderTextColor={COLORS.placeholder}
+            secureTextEntry
+            onChangeText={(t) => set("confirmPassword", t)}
+          />
+          <View style={styles.errorContainer}>
+            {err.confirmPassword && (
+              <Text style={styles.error}>{err.confirmPassword}</Text>
+            )}
+          </View>
         </View>
 
-        <TextInput
-          style={[
-            styles.inputUnderline,
-            err.email && { borderColor: COLORS.error },
-          ]}
-          placeholder="Email"
-          placeholderTextColor={COLORS.placeholder}
-          autoCapitalize="none"
-          onChangeText={(t) => set("email", t)}
-        />
-        <View style={styles.errorContainer}>
-          {err.email && <Text style={styles.error}>{err.email}</Text>}
+        <View style={styles.footer}>
+          <TouchableOpacity style={styles.button} onPress={handleRegister}>
+            <Text style={styles.buttonText}>Registrarme</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => navigation.navigate("login")}>
+            <Text style={styles.link}>Ya tengo cuenta</Text>
+          </TouchableOpacity>
         </View>
-
-        <TextInput
-          style={[
-            styles.inputUnderline,
-            err.password && { borderColor: COLORS.error },
-          ]}
-          placeholder="Password"
-          placeholderTextColor={COLORS.placeholder}
-          secureTextEntry
-          onChangeText={(t) => set("password", t)}
-        />
-        <View style={styles.errorContainer}>
-          {err.password && <Text style={styles.error}>{err.password}</Text>}
-        </View>
-
-        <TextInput
-          style={[
-            styles.inputUnderline,
-            err.confirmPassword && { borderColor: COLORS.error },
-          ]}
-          placeholder="Confirm Password"
-          placeholderTextColor={COLORS.placeholder}
-          secureTextEntry
-          onChangeText={(t) => set("confirmPassword", t)}
-        />
-        <View style={styles.errorContainer}>
-          {err.confirmPassword && (
-            <Text style={styles.error}>{err.confirmPassword}</Text>
-          )}
-        </View>
-      </View>
-
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.button} onPress={handleRegister}>
-          <Text style={styles.buttonText}>Registrarme</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => navigation.navigate("login")}>
-          <Text style={styles.link}>Ya tengo cuenta</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safe: {
     flex: 1,
-    justifyContent: "space-between",
-    padding: 24,
     backgroundColor: COLORS.background,
   },
-  title: {
-    fontSize: 32,
+  container: {
+    flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: "space-between",
+  },
+  content: {
+    marginTop: 40,
+  },
+  appName: {
+    fontSize: 18,
     fontWeight: "600",
-    marginBottom: 32,
+    color: COLORS.placeholder,
     textAlign: "center",
+    marginBottom: 8,
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: "700",
     color: COLORS.text,
+    textAlign: "center",
+  },
+  subtitle: {
+    fontSize: 14,
+    color: COLORS.placeholder,
+    textAlign: "center",
+    marginTop: 6,
+    marginBottom: 28,
   },
   inputUnderline: {
-    width: "100%",
     borderBottomWidth: 2,
     borderColor: COLORS.underline,
     paddingVertical: 8,
-    marginBottom: 6,
     fontSize: 16,
     color: COLORS.text,
+    marginBottom: 4,
   },
   errorContainer: {
     minHeight: 18,
+    marginBottom: 6,
   },
   error: {
     color: COLORS.error,
-    fontSize: 13,
+    fontSize: 12,
   },
   footer: {
-    width: "100%",
-    alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 24,
   },
   button: {
     backgroundColor: COLORS.primary,
-    paddingVertical: 16,
-    borderRadius: 25,
-    width: "100%",
+    paddingVertical: 14,
+    borderRadius: 28,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   buttonText: {
     color: COLORS.background,
     fontSize: 18,
-    textAlign: "center",
+    fontWeight: "600",
   },
   link: {
-    marginTop: 12,
+    marginTop: 14,
+    textAlign: "center",
     color: COLORS.placeholder,
-    fontSize: 15,
+    fontSize: 14,
   },
 });
